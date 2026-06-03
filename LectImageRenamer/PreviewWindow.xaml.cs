@@ -52,12 +52,12 @@ public partial class PreviewWindow : Window, INotifyPropertyChanged
         PreviewPath = item.FullPath;
         Title = $"プレビュー - {item.FileName}";
 
-        if (!IsVisible)
+        bool wasVisible = IsVisible;
+        if (!wasVisible)
         {
             Show();
+            Activate();
         }
-
-        Activate();
     }
 
     public void ClearImage()

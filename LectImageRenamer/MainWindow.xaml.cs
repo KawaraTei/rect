@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using LectImageRenamer.Models;
 using LectImageRenamer.ViewModels;
 
@@ -15,6 +16,8 @@ public partial class MainWindow : Window
     private ImageItem? _dragStartItem;
     private PreviewWindow? _previewWindow;
     private bool _suppressPreviewUpdates;
+    private bool _preservedMultiSelectionForDrag;
+    private bool _dragStarted;
 
     public MainWindow()
     {
@@ -44,7 +47,17 @@ public partial class MainWindow : Window
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Delete || IsTextInputElement(e.OriginalSource as DependencyObject))
+        if (IsTextInputElement(e.OriginalSource as DependencyObject))
+        {
+            return;
+        }
+
+        if (TryHandleGridHorizontalNavigation(e))
+        {
+            return;
+        }
+
+        if (e.Key != Key.Delete)
         {
             return;
         }
@@ -80,6 +93,33 @@ public partial class MainWindow : Window
     {
         _dragStartPoint = e.GetPosition(null);
         _dragStartItem = FindAncestor<ListBoxItem>(e.OriginalSource as DependencyObject)?.DataContext as ImageItem;
+        _preservedMultiSelectionForDrag = false;
+        _dragStarted = false;
+
+        if (_dragStartItem is not null &&
+            _dragStartItem.IsSelected &&
+            _viewModel.SelectedItems.Count > 1)
+        {
+            _preservedMultiSelectionForDrag = true;
+            e.Handled = true;
+        }
+    }
+
+    private void ImageList_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_preservedMultiSelectionForDrag)
+        {
+            return;
+        }
+
+        if (!_dragStarted && _dragStartItem is not null)
+        {
+            SelectSingleImage(_dragStartItem);
+        }
+
+        _preservedMultiSelectionForDrag = false;
+        _dragStartItem = null;
+        e.Handled = true;
     }
 
     private void ImageList_PreviewMouseMove(object sender, MouseEventArgs e)
@@ -102,8 +142,10 @@ public partial class MainWindow : Window
 
         DataObject dataObject = new();
         dataObject.SetData(ImageItemsDragFormat, movingItems);
+        _dragStarted = true;
         DragDrop.DoDragDrop((DependencyObject)sender, dataObject, DragDropEffects.Move);
         _dragStartItem = null;
+        _preservedMultiSelectionForDrag = false;
     }
 
     private void ImageList_DragOver(object sender, DragEventArgs e)
@@ -167,5 +209,68 @@ public partial class MainWindow : Window
         return FindAncestor<TextBox>(dependencyObject) is not null ||
                FindAncestor<PasswordBox>(dependencyObject) is not null ||
                FindAncestor<RichTextBox>(dependencyObject) is not null;
+    }
+
+    private bool TryHandleGridHorizontalNavigation(KeyEventArgs e)
+    {
+        if (!_viewModel.IsGridView ||
+            e.Key is not Key.Left and not Key.Right ||
+            FindAncestor<ListBox>(e.OriginalSource as DependencyObject) != GridImageList ||
+            _viewModel.Images.Count == 0)
+        {
+            return false;
+        }
+
+        int currentIndex = GridImageList.SelectedIndex;
+        if (currentIndex < 0)
+        {
+            SelectImageAt(0);
+            e.Handled = true;
+            return true;
+        }
+
+        int nextIndex = e.Key == Key.Right ? currentIndex + 1 : currentIndex - 1;
+        if (nextIndex < 0 || nextIndex >= _viewModel.Images.Count)
+        {
+            e.Handled = true;
+            return true;
+        }
+
+        SelectImageAt(nextIndex);
+        e.Handled = true;
+        return true;
+    }
+
+    private void SelectImageAt(int index)
+    {
+        SelectSingleImage(_viewModel.Images[index]);
+        GridImageList.ScrollIntoView(_viewModel.Images[index]);
+        ListImageList.ScrollIntoView(_viewModel.Images[index]);
+        FocusSelectedGridItem(_viewModel.Images[index]);
+    }
+
+    private void SelectSingleImage(ImageItem selectedImage)
+    {
+        foreach (ImageItem image in _viewModel.Images)
+        {
+            image.IsSelected = ReferenceEquals(image, selectedImage);
+        }
+
+        _viewModel.NotifySelectionChanged();
+    }
+
+    private void FocusSelectedGridItem(ImageItem selectedImage)
+    {
+        Dispatcher.BeginInvoke(() =>
+        {
+            if (GridImageList.ItemContainerGenerator.ContainerFromItem(selectedImage) is ListBoxItem item)
+            {
+                item.Focus();
+            }
+            else
+            {
+                GridImageList.Focus();
+            }
+        }, DispatcherPriority.Input);
     }
 }

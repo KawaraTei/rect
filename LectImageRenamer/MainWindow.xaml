@@ -274,6 +274,7 @@
                      Visibility="{Binding IsGridView, Converter={StaticResource BooleanToVisibilityConverter}}"
                      SelectionChanged="ImageList_SelectionChanged"
                      PreviewMouseLeftButtonDown="ImageList_PreviewMouseLeftButtonDown"
+                     PreviewMouseLeftButtonUp="ImageList_PreviewMouseLeftButtonUp"
                      PreviewMouseMove="ImageList_PreviewMouseMove"
                      DragOver="ImageList_DragOver"
                      Drop="ImageList_Drop">
@@ -296,6 +297,7 @@
                      Visibility="{Binding IsGridView, Converter={StaticResource InverseBooleanToVisibilityConverter}}"
                      SelectionChanged="ImageList_SelectionChanged"
                      PreviewMouseLeftButtonDown="ImageList_PreviewMouseLeftButtonDown"
+                     PreviewMouseLeftButtonUp="ImageList_PreviewMouseLeftButtonUp"
                      PreviewMouseMove="ImageList_PreviewMouseMove"
                      DragOver="ImageList_DragOver"
                      Drop="ImageList_Drop" />

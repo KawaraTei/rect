@@ -1,5 +1,7 @@
 bin/
 obj/
+build-verify/
+publish/
 .vs/
 *.user
 *.suo
