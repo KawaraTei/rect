@@ -228,6 +228,14 @@
                              Height="32"
                              VerticalContentAlignment="Center"
                              Text="{Binding RenamePrefix, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="開始"
+                               VerticalAlignment="Center"
+                               Margin="12,0,8,0" />
+                    <TextBox Width="56"
+                             Height="32"
+                             HorizontalContentAlignment="Right"
+                             VerticalContentAlignment="Center"
+                             Text="{Binding RenameStartNumber, UpdateSourceTrigger=PropertyChanged}" />
                     <Button Content="連番リネーム"
                             Command="{Binding RenameCommand}"
                             Style="{StaticResource ToolbarButtonStyle}" />

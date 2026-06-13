@@ -98,6 +98,17 @@ public partial class MainWindow : Window
 
         if (_dragStartItem is not null &&
             _dragStartItem.IsSelected &&
+            Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+        {
+            _dragStartItem.IsSelected = false;
+            _viewModel.NotifySelectionChanged();
+            _dragStartItem = null;
+            e.Handled = true;
+            return;
+        }
+
+        if (_dragStartItem is not null &&
+            _dragStartItem.IsSelected &&
             _viewModel.SelectedItems.Count > 1)
         {
             _preservedMultiSelectionForDrag = true;

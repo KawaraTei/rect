@@ -25,6 +25,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private bool _isGridView = true;
     private double _gridItemSize = 160;
     private string _renamePrefix = "image";
+    private int _renameStartNumber = 1;
     private string _statusText = "画像をドラッグアンドドロップしてください。";
 
     public MainWindowViewModel()
@@ -61,6 +62,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     {
         get => _renamePrefix;
         set => SetField(ref _renamePrefix, value);
+    }
+
+    public int RenameStartNumber
+    {
+        get => _renameStartNumber;
+        set => SetField(ref _renameStartNumber, value);
     }
 
     public string StatusText
@@ -247,15 +254,22 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             return;
         }
 
+        if (RenameStartNumber < 0)
+        {
+            MessageBox.Show("開始番号には0以上の整数を入力してください。", "リネーム", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
         List<ImageItem> targetImages = SelectedItems.Count > 0
             ? Images.Where(image => image.IsSelected).ToList()
             : Images.ToList();
 
-        int paddingWidth = Math.Max(3, (Images.Count - 1).ToString().Length);
+        int maxNumber = RenameStartNumber + targetImages.Count - 1;
+        int paddingWidth = Math.Max(3, maxNumber.ToString().Length);
         List<RenamePlan> plans = targetImages
-            .Select(image =>
+            .Select((image, offset) =>
             {
-                int index = Images.IndexOf(image);
+                int index = RenameStartNumber + offset;
                 string directory = Path.GetDirectoryName(image.FullPath) ?? string.Empty;
                 string extension = Path.GetExtension(image.FullPath);
                 string fileName = $"{prefix}_{index.ToString().PadLeft(paddingWidth, '0')}{extension}";
