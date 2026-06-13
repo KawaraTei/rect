@@ -1,8 +1,9 @@
 # LectImageRenamer
 
 Windows用の画像並び替え・連番リネームアプリです。
+リリースから取得できるEXEファイル単独で実行可能です。
 
-## 起動
+## 起動（EXE不使用で直接起動の場合）
 
 ```powershell
 dotnet run --project .\LectImageRenamer\LectImageRenamer.csproj
