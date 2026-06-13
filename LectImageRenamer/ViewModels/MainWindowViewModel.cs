@@ -155,11 +155,26 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private void ClearImages()
     {
-        Images.Clear();
+        List<ImageItem> selectedItems = SelectedItems.ToList();
+        if (selectedItems.Count > 0)
+        {
+            foreach (ImageItem item in selectedItems)
+            {
+                Images.Remove(item);
+            }
+
+            RefreshIndexes();
+            StatusText = $"{selectedItems.Count} 件を一覧からクリアしました。";
+        }
+        else
+        {
+            Images.Clear();
+            StatusText = "一覧をクリアしました。";
+        }
+
         NotifyImageCountChanged();
         NotifySelectionChanged();
         ImagesCleared?.Invoke(this, EventArgs.Empty);
-        StatusText = "一覧をクリアしました。";
     }
 
     private void DeleteSelectedImages()
@@ -232,10 +247,15 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             return;
         }
 
+        List<ImageItem> targetImages = SelectedItems.Count > 0
+            ? Images.Where(image => image.IsSelected).ToList()
+            : Images.ToList();
+
         int paddingWidth = Math.Max(3, (Images.Count - 1).ToString().Length);
-        List<RenamePlan> plans = Images
-            .Select((image, index) =>
+        List<RenamePlan> plans = targetImages
+            .Select(image =>
             {
+                int index = Images.IndexOf(image);
                 string directory = Path.GetDirectoryName(image.FullPath) ?? string.Empty;
                 string extension = Path.GetExtension(image.FullPath);
                 string fileName = $"{prefix}_{index.ToString().PadLeft(paddingWidth, '0')}{extension}";
@@ -251,7 +271,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             return;
         }
 
-        HashSet<string> sourcePaths = Images.Select(image => image.FullPath).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        HashSet<string> sourcePaths = targetImages.Select(image => image.FullPath).ToHashSet(StringComparer.OrdinalIgnoreCase);
         RenamePlan? conflict = plans.FirstOrDefault(plan => File.Exists(plan.TargetPath) && !sourcePaths.Contains(plan.TargetPath));
         if (conflict is not null)
         {
