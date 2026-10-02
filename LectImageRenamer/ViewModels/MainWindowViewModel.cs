@@ -247,8 +247,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             return;
         }
 
-        string prefix = SanitizePrefix(RenamePrefix);
-        if (string.IsNullOrWhiteSpace(prefix))
+        if (string.IsNullOrWhiteSpace(RenamePrefix))
         {
             MessageBox.Show("リネーム用の名前を入力してください。", "リネーム", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
@@ -264,20 +263,26 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             ? Images.Where(image => image.IsSelected).ToList()
             : Images.ToList();
 
-        int maxNumber = RenameStartNumber + targetImages.Count - 1;
+        long maxNumber = (long)RenameStartNumber + targetImages.Count - 1;
         int paddingWidth = Math.Max(3, maxNumber.ToString().Length);
         List<RenamePlan> plans = targetImages
             .Select((image, offset) =>
             {
-                int index = RenameStartNumber + offset;
+                long index = (long)RenameStartNumber + offset;
                 string directory = Path.GetDirectoryName(image.FullPath) ?? string.Empty;
-                string extension = Path.GetExtension(image.FullPath);
-                string fileName = $"{prefix}_{index.ToString().PadLeft(paddingWidth, '0')}{extension}";
+                string fileName = RenameFormat.CreateFileName(RenamePrefix, image.FileName, index, paddingWidth);
                 string targetPath = Path.Combine(directory, fileName);
                 return new RenamePlan(image, image.FullPath, targetPath);
             })
-            .Where(plan => !StringComparer.OrdinalIgnoreCase.Equals(plan.SourcePath, plan.TargetPath))
             .ToList();
+
+        if (plans.Select(plan => plan.TargetPath).Distinct(StringComparer.OrdinalIgnoreCase).Count() != plans.Count)
+        {
+            MessageBox.Show("リネーム後のファイル名が重複するため中止しました。書式を変更してください。", "リネーム", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        plans = plans.Where(plan => !StringComparer.OrdinalIgnoreCase.Equals(plan.SourcePath, plan.TargetPath)).ToList();
 
         if (plans.Count == 0)
         {
@@ -378,17 +383,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 yield return Path.GetFullPath(file);
             }
         }
-    }
-
-    private static string SanitizePrefix(string prefix)
-    {
-        string sanitized = prefix.Trim();
-        foreach (char invalidChar in Path.GetInvalidFileNameChars())
-        {
-            sanitized = sanitized.Replace(invalidChar, '_');
-        }
-
-        return sanitized;
     }
 
     private void RefreshIndexes()

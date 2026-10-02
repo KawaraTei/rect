@@ -227,7 +227,22 @@
                     <TextBox Width="220"
                              Height="32"
                              VerticalContentAlignment="Center"
-                             Text="{Binding RenamePrefix, UpdateSourceTrigger=PropertyChanged}" />
+                             Text="{Binding RenamePrefix, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTipService.ShowDuration="30000">
+                        <TextBox.ToolTip>
+                            <ToolTip>
+                                <TextBlock Foreground="#101318"><Run Text="通常の名前指定: image → image_001.png" /><LineBreak />
+                                    <Run Text="{}{}: 元のファイル名（拡張子を除く）" /><LineBreak />
+                                    <Run Text="\n: 連番。nの数がゼロ埋めの桁数（\nnn → 001）" /><LineBreak />
+                                    <Run Text="番号は「開始」から、一覧の順に付けます。" /><LineBreak />
+                                    <Run Text="例（元の名前: photo.png、開始: 1）" /><LineBreak />
+                                    <Run Text="\nnn{} → 001photo.png" /><LineBreak />
+                                    <Run Text="{}{}_\nnn → photo_001.png" /><LineBreak />
+                                    <Run Text="書式指定時は区切り文字も入力します。拡張子は維持します。" />
+                                </TextBlock>
+                            </ToolTip>
+                        </TextBox.ToolTip>
+                    </TextBox>
                     <TextBlock Text="開始"
                                VerticalAlignment="Center"
                                Margin="12,0,8,0" />
