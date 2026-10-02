@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:LectImageRenamer"
         mc:Ignorable="d"
         Title="画像リネーム" Height="720" Width="1120"
+        Icon="Assets/AppIcon.ico"
         MinHeight="560" MinWidth="860"
         AllowDrop="True"
         Drop="ImageList_Drop"

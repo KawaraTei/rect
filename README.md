@@ -23,3 +23,12 @@ dotnet run --project .\LectImageRenamer\LectImageRenamer.csproj
 - 名前欄のツールチップで書式と例を確認できます。選択がある場合は選択した画像だけ、選択がない場合は一覧の全画像が対象です。
 
 リネーム時の拡張子は元ファイルの拡張子を保持します。
+
+## EXEの更新
+
+```powershell
+dotnet publish .\LectImageRenamer\LectImageRenamer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o .\publish\LectImageRenamer-win-x64
+```
+
+出力先は `publish/LectImageRenamer-win-x64/LectImageRenamer.exe` です。
+EXEとウィンドウのアイコンは共通の `LectImageRenamer/Assets/AppIcon.ico` を参照します。元画像は同じフォルダーの `AppIcon.png` です。
